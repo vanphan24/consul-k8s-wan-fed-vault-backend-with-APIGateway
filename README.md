@@ -1,5 +1,6 @@
-# consul-k8s-wan-fed-vault-backend
+# consul-k8s-wan-fed-vault-backend-with-APIGateway
 This repo shows how to configure Vault as the backend for two Consul-K8s deployed in a WAN Federation topology. 
+We will then add an API Gateway to dc1 along with the hashicups app.
 
 High level steps:
 - Install Vault server (demo mode) in first Kube cluster (dc1) and install Vault agent in second Kube cluster (dc2).
@@ -345,8 +346,13 @@ Deploy the associated HTTP Routes once the API gateway reaches a ready state.
 kubectl wait --for=condition=ready gateway/example-gateway --namespace consul --timeout=90s && kubectl apply --filename api-gw/routes.yaml --namespace consul
 ```
 Now check that external requests from browser reaches the internal Hashicups frontend.
-The API Gateway should configures as a Load Balancer. Grab the external service IP and uses port 8443.
+The API Gateway should configures as a Load Balancer. 
 
+Grab the API Gateway service's external IP.
+```kubectl get svc example-gateway --context=dc1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+On your browser, connect with the API Gateway service's external IP and use port ```8443```
 
 
   # Delete Mesh Federation 
