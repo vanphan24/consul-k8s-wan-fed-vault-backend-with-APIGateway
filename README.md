@@ -115,7 +115,13 @@ kubectl config use-context dc1
 ```
   
   
-11. Deploy the primary Consul in dc1 with the consul-dc1.yaml file.
+11. We will deploy our Consul dc1 with the API Gateway so we will need to create the custom resource definitions (CRD) for the API Gateway Controller.  
+
+```
+kubectl apply --kustomize "github.com/hashicorp/consul-api-gateway/config/crd?ref=v0.2.0"
+```
+
+12. Deploy the primary Consul (with the API GW) in dc1 with the consul-dc1.yaml file.
   
 ```
 helm install consul-dc1 -f consul-dc1.yaml --version=0.43 hashicorp/consul
