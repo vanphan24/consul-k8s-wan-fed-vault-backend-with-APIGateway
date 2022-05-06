@@ -301,6 +301,54 @@ kubectl exec consul-server-0 --context=dc2 -- cat vault/secrets/servercert.crt
    kubectl exec consul-server-0 -- curl --cacert /vault/secrets/serverca.crt -v https://localhost:8501/v1/agent/connect/ca/roots | jq
    ```
 
+# Deploy Hashicups App
+
+```
+kubectl config use-context dc1  
+kubectl apply --filename two-services/ --namespace default
+```
+
+
+# Add API GW to dc1
+
+First to grab the server tls cert files (servercert.crt and servercert.key) from the Consul server. This will be used to present to the external clients when they connect to the API gateway.
+
+Copy the certs into a local file
+```
+kubectl exec consul-server-0 --context=dc1 -- cat vault/secrets/servercert.crt >> servercert.crt
+kubectl exec consul-server-0 --context=dc1 -- cat vault/secrets/servercert.key >> servercert.key
+
+```
+
+Copy certs into a Kubernetes secret.
+```
+kubectl create secret tls consul-server-cert --cert=servercert.crt --key=servercert.key 
+```
+
+Deploy API Gateway
+```
+kubectl apply --filename api-gw/consul-api-gateway.yaml --namespace consul
+```
+
+Check that the API gateway deployed and is in ready state.
+
+Example
+```
+vanphan@vanphan-F664JHFD6G api-gw % kubectl get gateway 
+NAME              CLASS                ADDRESS         READY   AGE
+example-gateway   consul-api-gateway   20.232.83.167   True    86m
+```
+Note if READY state is ```False```, run ```kubectl describe gateway example-gateway``` to see why.
+
+Deploy the associated HTTP Routes once the API gateway reaches a ready state.
+```
+kubectl wait --for=condition=ready gateway/example-gateway --namespace consul --timeout=90s && kubectl apply --filename api-gw/routes.yaml --namespace consul
+```
+Now check that external requests from browser reaches the internal Hashicups frontend.
+The API Gateway should configures as a Load Balancer. Grab the external service IP and uses port 8443.
+
+
+
   # Delete Mesh Federation 
   
 22. You can run the delete whole deployment with the delete-wan-fed.sh script.
