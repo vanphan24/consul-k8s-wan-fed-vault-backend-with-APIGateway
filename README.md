@@ -306,7 +306,7 @@ kubectl exec consul-server-0 --context=dc2 -- cat vault/secrets/servercert.crt
 
 ```
 kubectl config use-context dc1  
-kubectl apply --filename two-services/ --namespace default
+kubectl apply --filename hashicups/
 ```
 
 
@@ -328,14 +328,14 @@ kubectl create secret tls consul-server-cert --cert=servercert.crt --key=serverc
 
 Deploy API Gateway
 ```
-kubectl apply --filename api-gw/consul-api-gateway.yaml --namespace consul
+kubectl apply --filename api-gw/consul-api-gateway.yaml 
 ```
 
 Check that the API gateway deployed and is in ready state.
 
 Example
 ```
-vanphan@vanphan-F664JHFD6G api-gw % kubectl get gateway 
+kubectl get gateway 
 NAME              CLASS                ADDRESS         READY   AGE
 example-gateway   consul-api-gateway   20.232.83.167   True    86m
 ```
@@ -343,7 +343,7 @@ Note if READY state is ```False```, run ```kubectl describe gateway example-gate
 
 Deploy the associated HTTP Routes once the API gateway reaches a ready state.
 ```
-kubectl wait --for=condition=ready gateway/example-gateway --namespace consul --timeout=90s && kubectl apply --filename api-gw/routes.yaml --namespace consul
+kubectl wait --for=condition=ready gateway/example-gateway --timeout=90s && kubectl apply --filename api-gw/routes.yaml
 ```
 Now check that external requests from browser reaches the internal Hashicups frontend.
 The API Gateway should configures as a Load Balancer. 
