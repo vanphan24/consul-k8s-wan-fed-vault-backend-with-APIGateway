@@ -1,3 +1,6 @@
+kubectl config use-context dc1
+kubectl delete -f hashicups/
+kubectl delete -f api-gw/
 kubectl config use-context dc2
 helm delete vault-dc2
 consul-k8s uninstall -auto-approve -wipe-data   
