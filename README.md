@@ -364,7 +364,7 @@ You should see the Hashicup main landing page.
 
 ![alt text](https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.17.46%20AM.png)
 
-  # Delete Mesh Federation 
+  # Delete Mesh Federation and API GW 
   
 You can run the delete whole deployment with the delete-wan-fed.sh script.
 
