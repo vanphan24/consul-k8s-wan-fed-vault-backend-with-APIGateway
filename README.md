@@ -304,6 +304,7 @@ kubectl exec consul-server-0 --context=dc2 -- cat vault/secrets/servercert.crt
 
 # Deploy Hashicups App
 
+1) Run the commands below to deploy the Hashicups into the dc1 cluster.
 ```
 kubectl config use-context dc1  
 kubectl apply --filename hashicups/
@@ -312,26 +313,25 @@ kubectl apply --filename hashicups/
 
 # Add API GW to dc1
 
-First to grab the server tls cert files (servercert.crt and servercert.key) from the Consul server. This will be used to present to the external clients when they connect to the API gateway.
+We will retrieve the server tls cert files (servercert.crt and servercert.key) from the Consul server. This will be used to present to the external clients when they connect to the API gateway.
 
-Copy the certs into a local file
+2) Copy the certs into a local file
 ```
 kubectl exec consul-server-0 --context=dc1 -- cat vault/secrets/servercert.crt >> servercert.crt
 kubectl exec consul-server-0 --context=dc1 -- cat vault/secrets/servercert.key >> servercert.key
-
 ```
 
-Copy certs into a Kubernetes secret.
+3) Copy certs into a Kubernetes secret.
 ```
 kubectl create secret tls consul-server-cert --cert=servercert.crt --key=servercert.key 
 ```
 
-Deploy API Gateway
+4) Deploy API Gateway
 ```
 kubectl apply --filename api-gw/consul-api-gateway.yaml 
 ```
 
-Check that the API gateway deployed and is in ready state.
+5) Check that the API gateway deployed and is in ready state.
 
 Example
 ```
@@ -339,20 +339,27 @@ kubectl get gateway
 NAME              CLASS                ADDRESS         READY   AGE
 example-gateway   consul-api-gateway   20.232.83.167   True    86m
 ```
-Note if READY state is ```False```, run ```kubectl describe gateway example-gateway``` to see why.
+Note if READY state is ```False```, run  ```kubectl describe gateway example-gateway``` to see why.
 
-Deploy the associated HTTP Routes once the API gateway reaches a ready state.
+6) Deploy the associated HTTP Routes once the API gateway reaches a READY state. This HTTPRoute file will configure the API Gateway to sned traffic to specfic services (echo-1, echo-2, or frontend) based on the HTTPS path set by the client user's browser.
+
 ```
 kubectl wait --for=condition=ready gateway/example-gateway --timeout=90s && kubectl apply --filename api-gw/routes.yaml
 ```
-Now check that external requests from browser reaches the internal Hashicups frontend.
-The API Gateway should configures as a Load Balancer. 
 
-Grab the API Gateway service's external IP.
+7) Now check that external requests from client browser to the API Gateway reaches the internal Hashicups frontend.
+The API Gateway is configured as a Load Balancer. 
+
+You can retreive the API Gateway service's external IP.
 ```kubectl get svc example-gateway --context=dc1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
-On your browser, connect with the API Gateway service's external IP and use port ```8443```
+8) On your browser, connect with the API Gateway service's external IP using ```https``` and port ```8443```
+You should see the Hashicup main landing page.
+
+
+
+9) Now try appending ```/echo``` to the url on your browser. You should see that the API Gateway will alternate and send requests between the two echo services, ecoo-1 and echo-2. 
 
 
   # Delete Mesh Federation 
@@ -366,4 +373,4 @@ chmod 777 delete-wan-fed.sh
 ./delete-wan-fed.sh
 ```
 
-    If you prefer to to delete with helm, you can just delete the releases using ```helm delete```
+If you prefer to to delete with helm, you can just delete the releases using ```helm delete```
