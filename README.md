@@ -368,7 +368,9 @@ You should see the Hashicup main landing page.
   
 You can run the delete whole deployment with the delete-wan-fed.sh script.
 
-    Note: This script requires the consul-k8s CLI which deletes all Cosnul conomponents much more cleanly than using helm. The consul-k8s CLI which can be [downloaded here](https://www.consul.io/docs/k8s/installation/install-cli).
+Note: This script requires the consul-k8s CLI which deletes all Cosnul conomponents much more cleanly than using helm. The consul-k8s CLI which can be [downloaded here](https://www.consul.io/docs/k8s/installation/install-cli).
+
+[downloaded here](https://www.consul.io/docs/k8s/installation/install-cli)
 
 ```
 chmod 777 delete-all.sh
