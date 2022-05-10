@@ -351,7 +351,8 @@ kubectl wait --for=condition=ready gateway/example-gateway --timeout=90s && kube
 The API Gateway is configured as a Load Balancer. 
 
 You can retreive the API Gateway service's external IP.
-```kubectl get svc example-gateway --context=dc1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+kubectl get svc example-gateway --context=dc1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
 8) On your browser, connect with the API Gateway service's external IP using ```https``` and port ```8443```
