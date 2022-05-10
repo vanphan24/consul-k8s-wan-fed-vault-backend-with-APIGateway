@@ -356,12 +356,12 @@ You can retreive the API Gateway service's external IP.
 
 8) On your browser, connect with the API Gateway service's external IP using ```https``` and port ```8443```
 You should see the Hashicup main landing page.
-![alt text] (https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.15.03%20AM.png)
+![alt text](https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.15.03%20AM.png)
 
 
 9) Now try appending ```/echo``` to the url on your browser. You should see that the API Gateway will alternate and send requests between the two echo services, ecoo-1 and echo-2. 
 
-![alt text] (
+![alt text](https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.17.46%20AM.png)
 
   # Delete Mesh Federation 
   
