@@ -355,18 +355,18 @@ You can retreive the API Gateway service's external IP.
 kubectl get svc example-gateway --context=dc1 -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
-8) On your browser, connect with the API Gateway service's external IP using ```https``` and port ```8443```
+8) On your browser, enter the API Gateway service's external IP using ```https``` and port ```8443```
 You should see the Hashicup main landing page.
 ![alt text](https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.15.03%20AM.png)
 
 
-9) Now try appending ```/echo``` to the url on your browser. You should see that the API Gateway will alternate and send requests between the two echo services, ecoo-1 and echo-2. 
+9) Now try appending ```/echo``` to the url on your browser. If you keep  refreshing the page, you should see that the API Gateway will alternate and send requests between the two echo services, ecoo-1 and echo-2. 
 
 ![alt text](https://github.com/vanphan24/consul-k8s-wan-fed-vault-backend-with-APIGateway/blob/main/images/Screen%20Shot%202022-05-10%20at%2011.17.46%20AM.png)
 
   # Delete Mesh Federation 
   
-22. You can run the delete whole deployment with the delete-wan-fed.sh script.
+You can run the delete whole deployment with the delete-wan-fed.sh script.
 
     Note: This script requires the consul-k8s CLI which deletes all Cosnul conomponents much more cleanly than using helm. The consul-k8s CLI which can be [downloaded here](https://www.consul.io/docs/k8s/installation/install-cli).
 
