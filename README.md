@@ -315,6 +315,8 @@ kubectl apply --filename hashicups/
 
 We will retrieve the server tls cert files (servercert.crt and servercert.key) from the Consul server. This will be used to present to the external clients when they connect to the API gateway.
 
+1) kubectl config use-context dc1 
+
 2) Copy the certs into a local file
 ```
 kubectl exec consul-server-0 --context=dc1 -- cat vault/secrets/servercert.crt >> servercert.crt
