@@ -27,13 +27,15 @@ vault auth enable -path=kubernetes-dc1 kubernetes
 
 vault write auth/kubernetes-dc1/config kubernetes_host=https://kubernetes.default.svc
 
-kubectl apply -f auth-method.yaml
+
 
 echo Enabling Kubernetes Auth Method on dc2
 
 # Next, we will need to retreive the token and CA cert from that service account secret from the dc2 k8s cluster.
 # We will store these in Vault (auth/kubernetes-dc2/config) and use them to enable Auth method on 
 # dc1, as you'll see in the subsequent steps below. 
+
+kubectl apply -f auth-method.yaml
 
 K8S_DC2_CA_CERT="$(kubectl get secret `kubectl get serviceaccounts vault-dc2-auth-method -o jsonpath='{.secrets[0].name}'` -o jsonpath='{.data.ca\.crt}' | base64 -d)"
 
