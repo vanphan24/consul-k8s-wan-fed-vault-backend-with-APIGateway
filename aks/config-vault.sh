@@ -134,7 +134,7 @@ path "consul/data/secret/replication" {
 EOF
 
 
-# Configure the Consul server PKI on Vault. This is for the Consul Agent CA on the control plane.
+# Configure the Consul server PKI on Vault. We will generate the root CA for the Consul Agent CA on the control plane.
 
 echo Enabling Vault PKI and configuring for Consul Agent CA  
 
@@ -148,6 +148,9 @@ path "pki/cert/ca" {
 }
 EOF
 
+# Next we create a Vault role to create certs for the Consul Agent CA (control plane). 
+# The role "consul-cert-dc1" will be able to create certs for certain domains and subdomains, as seen below.
+
 vault write pki/roles/consul-cert-dc1 \
   allowed_domains="dc1.consul,consul-server,consul-server.default,consul-server.default.svc" \
   allow_subdomains=true \
@@ -156,12 +159,24 @@ vault write pki/roles/consul-cert-dc1 \
   generate_lease=true \
   max_ttl="720h"
 
+# Next, we create a policy for the "consul-cert-dc1" k8s auth role. The policy allows the ability to create and update certs. 
+
 vault policy write consul-cert-dc1 - <<EOF
 path "pki/issue/consul-cert-dc1"
 {
   capabilities = ["create","update"]
 }
 EOF
+
+# Putting it together: The "consul-cert-dc1" policy we just created is given to the "consul-server" k8s auth role that we created above.
+# When the Consul server want to access Vault, it must first show that it is allowed to access Vault. 
+# If you recall earlier, we created a K8s auth role called "consul-server"  with command: vault write auth/kubernetes-dc1/role/consul-server.
+# The K8s auth role allows the Consul server to log onto Vault as long as the Consul server has service account called "consul-server" tied to it. 
+# (Should verify this part about the consul server service account). 
+# Once the Consul server is given access to Vault, it assume the "consul-server" role.
+# The consul-server role has the "consul-cert-dc1" policy which says the consul-server role can "create" and "update" certificates
+# on this path: pki/issue/consul-cert-dc1
+
 
 vault write pki/roles/consul-cert-dc2 \
   allowed_domains="dc2.consul,consul-server,consul-server.default,consul-server.default.svc" \
