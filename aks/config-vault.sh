@@ -171,8 +171,8 @@ EOF
 # Putting it together: The "consul-cert-dc1" policy we just created is given to the "consul-server" k8s auth role that we created above.
 # When the Consul server want to access Vault, it must first show that it is allowed to access Vault. 
 # If you recall earlier, we created a K8s auth role called "consul-server"  with command: vault write auth/kubernetes-dc1/role/consul-server.
-# The K8s auth role allows the Consul server to log onto Vault as long as the Consul server has service account called "consul-server" tied to it. 
-# (Should verify this part about the consul server service account). 
+# This K8s auth role allows the Consul server to log onto Vault using the K8s service account called "consul-server".
+# The consul-server service account is tied directly to the Consul server.
 # Once the Consul server is given access to Vault, it assume the "consul-server" role.
 # The consul-server role has the "consul-cert-dc1" policy which says the consul-server role can "create" and "update" certificates
 # on this path: pki/issue/consul-cert-dc1
