@@ -31,11 +31,13 @@ vault write auth/kubernetes-dc1/config kubernetes_host=https://kubernetes.defaul
 
 echo Enabling Kubernetes Auth Method on dc2
 
-# Next, we will need to retreive the token and CA cert from that service account secret from the dc2 k8s cluster.
-# We will store these in Vault (auth/kubernetes-dc2/config) and use them to enable Auth method on 
-# dc1, as you'll see in the subsequent steps below. 
-
 kubectl apply -f auth-method.yaml
+
+# The auth-method.yaml file above creates a service account (and ClusterRoleBinding) on dc2. It also generates a JWT token and CA cert for the dc2 K8s cluster.
+# Next, we will need to retreive the JWT token and CA cert from that service account secret from the dc2 k8s cluster.
+# We will use the JWT token and CA cert to enable the Auth Method of dc2 from Vault on dc1 (auth/kubernetes-dc2/config). 
+# In other words, we use the token+CA cert to allow Vault server on dc1 to communicate with the K8s cluster (Kube API server) on dc2. 
+# You'll see in the subsequent steps below. 
 
 K8S_DC2_CA_CERT="$(kubectl get secret `kubectl get serviceaccounts vault-dc2-auth-method -o jsonpath='{.secrets[0].name}'` -o jsonpath='{.data.ca\.crt}' | base64 -d)"
 
@@ -43,21 +45,22 @@ K8S_DC2_JWT_TOKEN="$(kubectl get secret `kubectl get serviceaccounts vault-dc2-a
 
 export KUBE_API_URL_DC2=$(kubectl config view -o jsonpath="{.clusters[?(@.name == \"$(kubectl config current-context)\")].cluster.server}")
 
-#Enable Kube Auth method on dc2
+#Enable Kube Auth method on dc2 using the JWT token and CA cert retreived above.
+
 vault auth enable -path=kubernetes-dc2 kubernetes
 
 vault write auth/kubernetes-dc2/config kubernetes_host="${KUBE_API_URL_DC2}" token_reviewer_jwt="${K8S_DC2_JWT_TOKEN}" kubernetes_ca_cert="${K8S_DC2_CA_CERT}"
 
-# Next, We will need to create auth roles for the consul-k8s components so that they access
-# secrets that they will need. For each auth method in Vault, we will need roles for:
-
-# Consul server
-# Consul client
-# server-acl-init job
-# Role for Consul server CA
+# Next, We will need to create auth roles on Vault for the consul-k8s components so that they can access
+# secrets (inside Vault) that they will need to deploy. For each auth method in Vault, we will need roles for:
+# 1. Consul server
+# 2. Consul client
+# 3. server-acl-init job
+# 4. Role for Consul server CA
 
 echo Creating Vault Kube Auth roles for Consul server, Consul client, server-acl-init, and Consul server CA
 
+#Creating the 4 roles for dc1
 vault write auth/kubernetes-dc1/role/consul-server \
         bound_service_account_names=consul-server \
         bound_service_account_namespaces="default" \
@@ -79,6 +82,7 @@ vault write auth/kubernetes-dc1/role/consul-ca \
         policies=ca-policy \
         ttl=1h
 
+#Creating the 4 roles for dc1
 vault write auth/kubernetes-dc2/role/consul-server \
         bound_service_account_names=consul-server \
         bound_service_account_namespaces="default" \
@@ -101,10 +105,15 @@ vault write auth/kubernetes-dc2/role/consul-ca \
         ttl=1h
 
 
-# Generate and store gossip secrets on Vault. Create policy for gossip key.
+# Generate and store gossip secrets on Vault. 
 
 vault secrets enable -path=consul kv-v2
+
 vault kv put consul/secret/gossip key="$(consul keygen)"
+
+# Create "gossip" policy for gossip key. Any role (from above) that uses this "gossip" policy will be able to read the gossip key.
+# So if you notice the role above, the consul-server roles and consul-client role will be able to read the gossip key.
+
 
 vault policy write gossip - <<EOF
 path "consul/data/secret/gossip" {
@@ -112,9 +121,11 @@ path "consul/data/secret/gossip" {
 }
 EOF
 
-# Generate and store replication secret on Vault. Create policy for replication token.
+# Generate and store replication secret on Vault. Similar to the "gossip" policy 
 
 vault kv put consul/secret/replication token="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+
+# Create "replication" policy for replication token. Similar to "gossip" policy above, any role with this policy can read the replication key.
 
 vault policy write replication-token - <<EOF
 path "consul/data/secret/replication" {
@@ -123,9 +134,10 @@ path "consul/data/secret/replication" {
 EOF
 
 
-# Configure the Consul server PKI. This is for the Consul Agent CA on the control plane.
+# Configure the Consul server PKI on Vault. This is for the Consul Agent CA on the control plane.
 
-echo Enabling PKI and configuring for Consul Agent CA  
+echo Enabling Vault PKI and configuring for Consul Agent CA  
+
 #vault secrets tune -max-lease-ttl=87600h pki
 vault secrets enable pki
 vault write pki/root/generate/internal common_name="Consul CA" ttl=87600h
