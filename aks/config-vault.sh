@@ -82,7 +82,7 @@ vault write auth/kubernetes-dc1/role/consul-ca \
         policies=ca-policy \
         ttl=1h
 
-#Creating the 4 roles for dc1
+#Creating the 4 roles for dc2
 vault write auth/kubernetes-dc2/role/consul-server \
         bound_service_account_names=consul-server \
         bound_service_account_namespaces="default" \
